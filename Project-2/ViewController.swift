@@ -12,6 +12,7 @@ class ViewController: UIViewController {
     @IBOutlet var button2: UIButton!
     @IBOutlet var button3: UIButton!
     
+    
     @IBOutlet var scoreLabel: UILabel!
     @IBOutlet var correctLabel: UILabel!
     @IBOutlet var wrongLabel: UILabel!
@@ -26,6 +27,10 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // Добавляем кнопку "Назад" слева
+        let backButton = UIBarButtonItem(title:"Ⓧ", style: .plain, target: self, action: #selector(backButtonTapped))
+        navigationItem.leftBarButtonItem = backButton
         
         scoreLabel.text = "Ваш рахунок: 0 (0%)"
         correctLabel.text = "Правильних відповідей: 0"
@@ -44,6 +49,13 @@ class ViewController: UIViewController {
         countries.shuffle()
         askQuestion(action: nil)
     }
+    
+    // Действие при нажатии на кнопку "Назад"
+    @objc func backButtonTapped() {
+        // Переводим приложение в фоновый режим
+        UIApplication.shared.perform(#selector(NSXPCConnection.suspend))
+    }
+    
     func askQuestion(action: UIAlertAction!) {
         countries.shuffle()
         button1.setImage(UIImage(named: countries[0]), for: .normal)
@@ -68,7 +80,6 @@ class ViewController: UIViewController {
         if score < 0 {
             score = 0
         }
-        
         totalAnswers += 1
         
         scoreLabel.text = "Ваш рахунок: \(score) (\(scoreCorrect * 100 / totalAnswers)%)"
