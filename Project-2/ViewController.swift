@@ -24,6 +24,8 @@ class ViewController: UIViewController {
     var scoreCorrect = 0
     var scoreWrong = 0
     var totalAnswers = 0
+    var scoreMax = 0
+    var scoreMaxTemp = 0
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -48,6 +50,8 @@ class ViewController: UIViewController {
         button3.layer.borderColor =  UIColor.lightGray.cgColor
         countries.shuffle()
         askQuestion(action: nil)
+        
+        loadScores()
     }
     
     // Действие при нажатии на кнопку "Назад"
@@ -67,6 +71,21 @@ class ViewController: UIViewController {
     @IBAction func buttonTapped(_ sender: UIButton) {
         var title: String
         
+        // Анимация уменьшения и подпрыгивания
+          UIView.animate(withDuration: 0.5, animations: {
+              // Уменьшаем кнопку до 80% от её исходного размера
+              sender.transform = CGAffineTransform(scaleX: 0.5, y: 0.5)
+          }) { _ in
+              // Возвращаемся к исходному размеру с легким подпрыгиванием
+              UIView.animate(withDuration: 0.5,
+                             delay: 0,
+                             usingSpringWithDamping: 0.5,  // Сила пружины, чем меньше значение, тем сильнее эффект подпрыгивания
+                             initialSpringVelocity: 0.2,  // Начальная скорость анимации
+                             options: [],
+                             animations: {
+                  sender.transform = .identity
+              })
+          }
         if sender.tag == correctAnswers {
             title = "Правильно \u{1F60A}"
             score += 1
@@ -87,10 +106,52 @@ class ViewController: UIViewController {
         wrongLabel.text = "Не правильних відповідей: \(scoreWrong)"
         allGameFact.text = "Всього відповідей: \(totalAnswers)"
         
-        let ac = UIAlertController(title: title, message: "Ваш рахунок: \(score).", preferredStyle: .alert)
+        if scoreMax < score {
+            scoreMax = score
+            saveScore()
+            alert(title: "Вітаємо", message:  "Ваш новий рекорд: \(scoreMax).")
+        }
+        
+        alert(title: title, message:  "Ваш рахунок: \(score).")
+    }
+    
+    func saveScore() {
+        
+        let defaults = UserDefaults.standard
+        defaults.set(scoreMax, forKey: "scoreMax")
+        defaults.set(scoreMaxTemp, forKey: "scoreMaxTemp")
+        print("Cохранение \(scoreMax) и \(scoreMaxTemp)")
+    }
+    
+    func alert(title: String, message:  String) {
+        let ac = UIAlertController(title: title, message: message , preferredStyle: .alert)
         ac.addAction(UIAlertAction(title: "Продовжити", style: .default, handler: askQuestion))
         present(ac, animated: true)
     }
     
+    func loadScores() {
+        
+        let defaults = UserDefaults.standard
+        
+        if let savedScoreMax = defaults.object(forKey: "scoreMax") as? Int {
+            scoreMax = savedScoreMax
+            print("Загрузка scoreMax: \(scoreMax)")
+        }
+        
+        if let savedScoreMaxTemp = defaults.object(forKey: "scoreMaxTemp") as? Int {
+            scoreMaxTemp = savedScoreMaxTemp
+            print("Загрузка scoreMaxTemp: \(scoreMaxTemp)")
+        }
+        
+        if scoreMax > scoreMaxTemp {
+            scoreMaxTemp = scoreMax
+            // alert(title: "Вітаємо", message:  "Ваш рекорд в попередніх іграх: \(scoreMax).")
+            saveScore()
+            
+            let ac = UIAlertController(title: "Вітаємо", message: "Ваш рекорд в попередніх іграх: \(scoreMax)." , preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "Продовжити", style: .default, handler: nil))
+            present(ac, animated: true)
+        }
+    }
 }
 
